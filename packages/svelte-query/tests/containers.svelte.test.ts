@@ -198,6 +198,18 @@ describe('createRawRef', () => {
     expect(ref).toEqual([7, 8, 9])
   })
 
+  it('should remove multiple array entries without throwing', () => {
+    const [ref, update] = createRawRef([1, 2, 3, 4])
+
+    expect(ref).toEqual([1, 2, 3, 4])
+
+    expect(() => {
+      update([1, 2])
+    }).not.toThrow()
+
+    expect(ref).toEqual([1, 2])
+  })
+
   it('should behave like a regular object when not using `update`', () => {
     const [ref] = createRawRef<Record<string, unknown>>({ a: 1, b: 2 })
 

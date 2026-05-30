@@ -341,4 +341,45 @@ describe('createQueries', () => {
     expect(queryFn1).toHaveBeenCalledTimes(0)
     expect(queryFn2).toHaveBeenCalledTimes(0)
   })
+
+  it(
+    'should handle removing multiple queries at once without throwing',
+    withEffectRoot(async () => {
+      const keys = [queryKey(), queryKey(), queryKey(), queryKey()]
+      const queryFns = [
+        vi.fn(() => Promise.resolve('one')),
+        vi.fn(() => Promise.resolve('two')),
+        vi.fn(() => Promise.resolve('three')),
+        vi.fn(() => Promise.resolve('four')),
+      ]
+      let queryCount = $state(4)
+
+      const result = createQueries(
+        () => ({
+          queries: keys.slice(0, queryCount).map((queryKey, index) => ({
+            queryKey,
+            queryFn: () => queryFns[index](),
+          })),
+        }),
+        () => queryClient,
+      )
+
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(result).toHaveLength(4)
+      expect(result[0].data).toBe('one')
+      expect(result[3].data).toBe('four')
+      expect(queryFns[2]).toHaveBeenCalledTimes(1)
+      expect(queryFns[3]).toHaveBeenCalledTimes(1)
+
+      queryCount = 2
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(result).toHaveLength(2)
+      expect(result[0].data).toBe('one')
+      expect(result[1].data).toBe('two')
+      expect(queryFns[2]).toHaveBeenCalledTimes(1)
+      expect(queryFns[3]).toHaveBeenCalledTimes(1)
+    }),
+  )
 })

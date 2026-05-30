@@ -75,12 +75,10 @@ export function createRawRef<T extends {} | Array<unknown>>(
         // If we just deleted it, the reactivity system wouldn't have any idea that the value was gone.
         target[prop] = undefined
         hiddenKeys.add(prop)
-        if (Array.isArray(target)) {
-          target.length--
-        }
         return true
       }
-      return false
+      hiddenKeys.add(prop)
+      return true
     },
   })
 
@@ -99,6 +97,9 @@ export function createRawRef<T extends {} | Array<unknown>>(
       // So we wrap the property access in a special function that we can identify later to lazily access the value.
       // (See above)
       out[key] = brand(() => newValue[key])
+    }
+    if (Array.isArray(out)) {
+      out.length = newKeys.length
     }
   }
 
